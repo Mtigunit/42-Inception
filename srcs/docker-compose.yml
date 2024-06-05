@@ -1,0 +1,68 @@
+version: '3'
+
+services:
+  nginx:
+    build:
+      context: ./requirements/nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    image: nginx
+    depends_on:
+      - wordpress
+    ports:
+      - target: 443
+        published: 443
+    env_file:
+      - .env
+    networks:
+      - my_network
+    volumes:
+      - wordpress:/var/www/wordpress
+    restart: on-failure
+
+  wordpress:
+    build:
+      context: ./requirements/wordpress
+      dockerfile: Dockerfile
+    container_name: wordpress
+    image: wordpress
+    depends_on:
+      - mariadb
+    env_file:
+      - .env
+    networks:
+      - my_network
+    volumes:
+      - wordpress:/var/www/wordpress
+    restart: on-failure
+
+  mariadb:
+    build:
+      context: ./requirements/mariadb/
+      dockerfile: Dockerfile
+    container_name: mariadb
+    image: mariadb
+    env_file:
+      - .env
+    networks:
+      - my_network
+    volumes:
+      - mariadb:/var/lib/mysql
+    restart: on-failure
+
+
+networks:
+  my_network:
+
+volumes:
+  wordpress:
+    driver_opts:
+      device: /home/mtigunit/data/wordpress
+      type: none
+      o: bind
+
+  mariadb:
+    driver_opts:
+      device: /home/mtigunit/data/mariadb
+      type: none
+      o: bind
